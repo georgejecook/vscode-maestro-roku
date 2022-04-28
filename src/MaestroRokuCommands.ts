@@ -60,6 +60,9 @@ export class MaestroRokuCommands {
     subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.updateTDDTarget', () => {
       this.onUpdateTDDTarget();
     }));
+    subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.runTDDTarget', () => {
+      this.onRunTDDTarget();
+    }));
     subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.removeOnly', () => {
       this.onRemoveOnly();
     }));
@@ -258,6 +261,16 @@ export class MaestroRokuCommands {
    * rooibos specific
    */
   private async onUpdateTDDTarget() {
+    await this.runTDDTarget(false);
+  }
+  /**
+   * rooibos specific
+   */
+  private async onRunTDDTarget() {
+    await this.runTDDTarget(true);
+  }
+
+  private async runTDDTarget(executeLaunchTarget: boolean) {
     let tddUri = this.fileUtils.getTDDUri();
     let startLocation = await this.documentUtils.findTextInFile(tddUri, '"\\*\\*/START"');
     let endLocation = await this.documentUtils.findTextInFile(tddUri, '"\\*\\*/END"');
@@ -268,13 +281,28 @@ export class MaestroRokuCommands {
     }
     let numberOfLinesToRemove = endLocation[0]?.range.start.line - startLocation[0]?.range.start.line - 1;
 
-    let filesPathsToInclude: string[] = vscode.workspace.textDocuments.filter((document) => document.uri.fsPath.endsWith('.spec.bs')).map((document) => `"${vscode.workspace.asRelativePath(document.uri).replace('src/', '')}",`);
-
+    let filesPathsToInclude: string[] = vscode.workspace.textDocuments.filter((document) => document.uri.fsPath.endsWith('.spec.bs')).map((document) => {
+      let p = vscode.workspace.asRelativePath(document.uri);
+      //FIXME - make a config setting for the project root folder, and to ascertain if a file is from some other place
+      if (p.startsWith('src')) {
+        //it's in the main source
+        p = p.replace('src/', '');
+        return `"${p}",`;
+      } else {
+        p = p.replace('/source/', '/**/');
+        p = p.replace('/components/', '/**/');
+        return `{"src":"../${p}", "dest": ""},`;
+      }
+    });
     textLines.splice(startLocation[0].range.start.line + 1, numberOfLinesToRemove, ...filesPathsToInclude);
     this.documentUtils.updateDocumentText(tddUri, textLines.join('\n'));
-    vscode.window.showInformationMessage(`Running ${filesPathsToInclude.length} test suites`);
-    await vscode.commands.executeCommand('workbench.action.debug.stop');
-    await vscode.commands.executeCommand('workbench.action.debug.run');
+    if (executeLaunchTarget) {
+      vscode.window.showInformationMessage(`Running ${filesPathsToInclude.length} test suites`);
+      await vscode.commands.executeCommand('workbench.action.debug.stop');
+      await vscode.commands.executeCommand('workbench.action.debug.run');
+    } else {
+      vscode.window.showInformationMessage(`bsconfig-tdd.json configured to run ${filesPathsToInclude.length} test suites`);
+    }
   }
 
   private async onRemoveOnly() {
