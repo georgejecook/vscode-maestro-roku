@@ -5,7 +5,7 @@
   "publisher": "tantawowa",
   "repository": {
     "type": "git",
-    "url": "https://github.com/npm/cli.git"
+    "url": "https://github.com/georgejecook/vscode-maestro-roku"
   },
   "version": "0.0.1",
   "engines": {
@@ -15,10 +15,19 @@
     "Other"
   ],
   "activationEvents": [
-    "*"
-  ],
-  "_activationEvents": [
-    "onCommand:extension.maestro.*)"
+    "onCommand:extension.maestro.navigation.cycleFiles",
+    "onCommand:extension.maestro.navigation.gotoTest",
+    "onCommand:extension.maestro.navigation.gotoStyleKey",
+    "onCommand:extension.maestro.navigation.gotoCode",
+    "onCommand:extension.maestro.navigation.gotoBundle",
+    "onCommand:extension.maestro.navigation.peekStyleKey",
+    "onCommand:extension.maestro.navigation.peekBundle",
+    "onCommand:extension.maestro.navigation.updateTDDTarget",
+    "onCommand:extension.maestro.navigation.runTDDTarget",
+    "onCommand:extension.maestro.navigation.removeOnly",
+    "onCommand:extension.maestro.navigation.onlyDescribe",
+    "onCommand:extension.maestro.navigation.onlyIt",
+    "onCommand:extension.maestro.navigation.onlyTest"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -59,8 +68,13 @@
         "category": "Maestro roku"
       },
       {
-        "command": "extension.maestro.navigation.updateTDDTarget",
+        "command": "extension.maestro.navigation.runTDDTarget",
         "title": "Run open specs in TDD mode",
+        "category": "Maestro roku"
+      },
+      {
+        "command": "extension.maestro.navigation.updateTDDTarget",
+        "title": "Update TDD config to match open files",
         "category": "Maestro roku"
       },
       {
