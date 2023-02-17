@@ -1,13 +1,13 @@
 {
-  "name": "vscode-maestro-roku",
-  "displayName": "Maestro roku",
-  "description": "Adds support for maestro-roku projects",
-  "publisher": "tantawowa",
+  "name": "maestro-roku-vscode",
+  "displayName": "Maestro-roku and rooibos-roku support",
+  "description": "Adds useful support for maestro-roku and rooibos-roku projects",
+  "publisher": "tantawowallc",
   "repository": {
     "type": "git",
     "url": "https://github.com/georgejecook/vscode-maestro-roku"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.53.0",
     "node": "^12.12.0"
