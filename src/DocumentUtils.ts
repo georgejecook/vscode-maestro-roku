@@ -23,7 +23,7 @@ export default class DocumentUtils {
   }
 
   public getFullQuotedString(document: TextDocument, position: Position): string {
-    const range = document.getWordRangeAtPosition(position);
+    const range = document.getWordRangeAtPosition(position, /[a-zA-Z0-9_\-\.~]+/);
     if (range !== undefined) {
       return document.getText(range).replace(/\"/g, '');
     }

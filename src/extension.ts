@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+import { debug } from 'console';
 import * as vscode from 'vscode';
 import { MaestroRokuCommands } from './MaestroRokuCommands';
 
@@ -11,7 +12,6 @@ export function activate(context: vscode.ExtensionContext) {
   // This line of code will only be executed once when your extension is activated
   console.log('"vscode-maestro-roku" activated');
 
-  console.log('what');
   maestroCommands.registerCommands(context);
 }
 

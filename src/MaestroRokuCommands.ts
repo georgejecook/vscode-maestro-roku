@@ -135,13 +135,29 @@ export class MaestroRokuCommands {
   async onGotoStyleKey(options: any = undefined) {
     let activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
-      let targetFilename = this.fileUtils.getStyleFilename();
+      let targetFilename = await this.fileUtils.getStyleFilename();
       if (targetFilename) {
         const position = activeEditor.selection.active;
         let key = this.documentUtils.getFullQuotedString(activeEditor.document, position);
         if (key.startsWith('~')) {
           key = key.substring(1);
         }
+        //first check if the style is in the current editor
+        if (activeEditor?.document?.fileName.endsWith('.json')) {
+          let localKey = `$styles.${key}`;
+          let localFileName = activeEditor?.document?.fileName;
+          let localKeyLineNumber = this.fileUtils.getJsonLineNumberWithKey(localFileName, localKey);
+          if (localKeyLineNumber !== -1) {
+            let range = this.documentUtils.createRange(localKeyLineNumber, localKeyLineNumber);
+            // activeEditor.selection = new vscode.Selection(range.start, range.start);
+            if (! await this.openFile(localFileName, range, options)) {
+              await this.openFile(localFileName, range, options);
+            }
+            return;
+          }
+        }
+
+        //no - go to style key
         // let key = 'theme.colors.general.black';
         let keyLineNumber = this.fileUtils.getJsonLineNumberWithKey(targetFilename, key);
         if (keyLineNumber !== -1) {
@@ -151,6 +167,9 @@ export class MaestroRokuCommands {
           }
         } else {
           console.error(`style key ${key} not found in Styles.json`);
+          if (! await this.openFile(targetFilename, undefined, options)) {
+            await this.openFile(targetFilename, undefined, options);
+          }
         }
       }
     }
@@ -159,11 +178,16 @@ export class MaestroRokuCommands {
   async onGotoBundle(options: any = undefined) {
     if (vscode.window.activeTextEditor) {
       const currentDocument = vscode.window.activeTextEditor.document;
-      let targetFilename = this.fileUtils.getBundleFileName(currentDocument.fileName);
+      let targetFilename = await this.fileUtils.getBundleFileName(currentDocument.fileName);
       let activeEditor = vscode.window.activeTextEditor;
       const position = activeEditor.selection.active;
       const word = this.documentUtils.getWord(currentDocument, position);
-      this.gotoTextInFile(targetFilename, `"id": "${word}"`, 0, options);
+      let location = await this.getFirstRangeOfTextInFile(targetFilename, `"id": "${word}"`);
+      // this.gotoTextInFile(targetFilename, `"id": "${word}"`, 0, options);
+      if (! await this.openFile(targetFilename, location)) {
+        await this.openFile(targetFilename, location);
+      }
+
     }
   }
 
@@ -181,6 +205,14 @@ export class MaestroRokuCommands {
       this.gotoFile(filename, range, options);
     }
   }
+
+  async getFirstRangeOfTextInFile(filename: string, text: string) {
+
+    let uri = vscode.Uri.file(filename);
+    let locations = await this.documentUtils.findTextInFile(uri, text);
+    return locations?.[0]?.range;
+  }
+
   async gotoFile(filename: string, range: vscode.Range = undefined, options: any = undefined) {
     if (vscode.window.activeTextEditor) {
       let currentDocument = vscode.window.activeTextEditor.document;
@@ -219,7 +251,7 @@ export class MaestroRokuCommands {
     try {
       let doc = await vscode.workspace.openTextDocument(uri); // calls back into the provider
       options = options ? options : {};
-      let viewColumn = uri.fsPath.endsWith('.spec.bs') ? vscode.ViewColumn.One : vscode.ViewColumn.Two;
+      let viewColumn = uri.fsPath.endsWith('.spec.bs') || uri.fsPath.endsWith('.json') ? vscode.ViewColumn.One : vscode.ViewColumn.Two;
       await vscode.window.showTextDocument(doc, viewColumn);
       console.log('opened', filename, 'going to range', range);
       if (range) {
@@ -234,7 +266,7 @@ export class MaestroRokuCommands {
   private async fixCurrentDocumentColumn() {
     let activeEditor = vscode.window.activeTextEditor;
     let uri = activeEditor.document.uri;
-    let viewColumn = uri.fsPath.endsWith('.spec.bs') ? vscode.ViewColumn.One : vscode.ViewColumn.Two;
+    let viewColumn = uri.fsPath.endsWith('.spec.bs') || uri.fsPath.endsWith('.json') ? vscode.ViewColumn.One : vscode.ViewColumn.Two;
     if (activeEditor.viewColumn !== viewColumn) {
       const position = activeEditor.selection.active;
       await vscode.commands.executeCommand('workbench.action.closeActiveEditor');

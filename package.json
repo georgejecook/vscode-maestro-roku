@@ -9,12 +9,19 @@
   },
   "version": "0.0.2",
   "engines": {
-    "vscode": "^1.66.0"
+    "vscode": "^1.53.0",
+    "node": "^12.12.0"
   },
   "categories": [
     "Other"
   ],
   "activationEvents": [
+    "onDebug",
+    "onLanguage:brightscript",
+    "onLanguage:brighterscript",
+    "onLanguage:xml",
+    "workspaceContains:**/manifest",
+    "workspaceContains:**/bsconfig.json",
     "onCommand:extension.maestro.navigation.cycleFiles",
     "onCommand:extension.maestro.navigation.gotoTest",
     "onCommand:extension.maestro.navigation.gotoStyleKey",
@@ -97,6 +104,36 @@
         "title": "Only this test suite",
         "category": "Maestro roku"
       }
+    ],
+    "keybindings": [
+      {
+        "key": "alt+m t",
+        "command": "extension.maestro.navigation.gotoTest"
+      },
+      {
+        "key": "alt+m d",
+        "command": "extension.maestro.navigation.onlyDescribe"
+      },
+      {
+        "key": "alt+m i",
+        "command": "extension.maestro.navigation.onlyIt"
+      },
+      {
+        "key": "alt+m s",
+        "command": "extension.maestro.navigation.onlyTest"
+      },
+      {
+        "key": "alt+m b",
+        "command": "extension.maestro.navigation.gotoBundle"
+      },
+      {
+        "key": "alt+m k",
+        "command": "extension.maestro.navigation.gotoStyleKey"
+      },
+      {
+        "key": "alt+m c",
+        "command": "extension.maestro.navigation.gotoCode"
+      }
     ]
   },
   "scripts": {
@@ -111,7 +148,8 @@
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "14.x",
-    "@types/vscode": "^1.66.0",
+    "@types/vscode": "^1.53.0",
+    "vsce": "^2.15.0",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
     "@vscode/test-electron": "^2.1.2",
@@ -122,6 +160,8 @@
   },
   "dependencies": {
     "iconv-lite": "^0.6.3",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "vscode-languageclient": "^7.0.0",
+    "vscode-uri": "^1.0.6"
   }
 }
