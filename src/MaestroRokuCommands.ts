@@ -142,6 +142,14 @@ export class MaestroRokuCommands {
       }
 
       let sourcePkgPath = this.fileUtils.getPkgPathFromFilePath(path.join(targetPath, `${className}`));
+
+      const targetFilePath = await util.showQuickPickInputBox({
+        placeholder: 'Confirm path name',
+        items: [{ label: this.fileUtils.getPkgPathFromFilePath(targetPath) }]
+      });
+
+      //TODO if path does not exist, then create it
+
       for (let filePath of selectedItem.files) {
         let targetFilePath = this.getTargetFilePath(filePath, targetPath, className);
         if (!rootFilePath) {

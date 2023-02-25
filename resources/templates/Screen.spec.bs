@@ -10,7 +10,7 @@ namespace tests
     protected override function beforeEach()
       super.beforeEach()
       m.screen = m.createNodeClass($NAMESPACE$.$CLASSNAME$)
-      m.createMockViews(m.screen, "$PKG_PATH$/$CLASSNAME$.json")
+      m.createMockViews(m.screen, "pkg:/$SOURCE_PKG_PATH$/$CLASSNAME$.json")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -35,7 +35,7 @@ namespace tests
       }
       m.screen.styleManager = { "id": "styleManager" }
 
-      m.expectCalled(m.screen.styleManager@.loadBundle("$PKG_PATH$/$CLASSNAME$.json"), bundle)
+      m.expectCalled(m.screen.styleManager@.loadBundle("pkg:/$SOURCE_PKG_PATH$/$CLASSNAME$.json"), bundle)
       m.screen.createViews()
 
       m.assertEqual(m.screen.focusedControl, m.screen.focusedControl)

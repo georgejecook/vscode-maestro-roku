@@ -40,7 +40,7 @@ namespace tests
         errorMessage = error.message
       end try
 
-      assertEqual(errorMessage, "$CLASSNAME$ it not yet implemented")
+      m.assertEqual(errorMessage, "$CLASSNAME$ it not yet implemented")
     end function
 
     @it("executes example command")
