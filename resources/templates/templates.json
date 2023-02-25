@@ -1,0 +1,21 @@
+{
+  "templates": [
+    {
+      "name": "Screen Component",
+      "files": ["Screen.bs", "Screen.spec.bs", "Screen.json"]
+    },
+    {
+      "name": "View Component",
+      "files": ["View.bs", "View.spec.bs", "View.json"]
+    },
+    { "name": "Task", "files": ["Task.bs", "Task.spec.bs"] },
+    { "name": "Screen file", "files": ["Screen.bs"] },
+    { "name": "Screen test file", "files": ["Screen.spec.bs"] },
+    { "name": "Screen bundle file", "files": ["Screen.json"] },
+    { "name": "View file", "files": ["View.bs"] },
+    { "name": "View test file", "files": ["View.spec.bs"] },
+    { "name": "View bundle file", "files": ["View.json"] },
+    { "name": "Task file", "files": ["Task.bs"] },
+    { "name": "Task test file", "files": ["Task.spec.bs"] }
+  ]
+}
