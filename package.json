@@ -34,7 +34,8 @@
     "onCommand:extension.maestro.navigation.onlyIt",
     "onCommand:extension.maestro.navigation.onlyTest",
     "maestro.files.createComponent",
-    "maestro.files.createFile"
+    "maestro.files.createFile",
+    "maestro.files.createCustomTemplates"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -47,6 +48,11 @@
       {
         "command": "maestro.files.File",
         "title": "New Maestro file...",
+        "category": "Maestro roku"
+      },
+      {
+        "command": "maestro.files.createCustomTemplates",
+        "title": "Create Custom Maestro Templates",
         "category": "Maestro roku"
       },
       {
