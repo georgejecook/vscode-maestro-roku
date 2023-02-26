@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import FileUtils from './FileUtils';
 import DocumentUtils from './DocumentUtils';
+import { util } from './Util';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export class MaestroRokuCommands {
 
@@ -13,9 +16,15 @@ export class MaestroRokuCommands {
   private documentUtils: DocumentUtils;
   private context: vscode.ExtensionContext;
   private host: string;
+  private extensionTemplates: any;
+  private resourcesPath: string;
 
   registerCommands(context: vscode.ExtensionContext) {
     this.context = context;
+    this.resourcesPath = context.asAbsolutePath(path.join('resources'));
+    this.extensionTemplates = this.loadExtensionTemplatesJson(context.asAbsolutePath(path.join('resources', 'templates')));
+    //TODO get these from local workspace
+    // this.workspaceTemplates = this.loadExtensionTemplatesJson(context.asAbsolutePath(path.join('resources','templates')));
 
     let subscriptions = context.subscriptions;
 
@@ -40,19 +49,6 @@ export class MaestroRokuCommands {
       this.onGotoStyleKey({ preview: true });
     }));
 
-    subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.peekStyleKey', () => {
-      this.onGotoStyleKey({ preview: true });
-    }));
-
-    subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.peekJsonDeclaration', () => {
-      this.onGotoJsonDeclaration({ preview: true });
-    }));
-
-
-    subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.peekBundle', () => {
-      this.onGotoBundle(true);
-    }));
-
     //rooibos specific
     subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.gotoTest', () => {
       this.onGotoTest();
@@ -75,6 +71,178 @@ export class MaestroRokuCommands {
     subscriptions.push(vscode.commands.registerCommand('extension.maestro.navigation.onlyTest', () => {
       this.onOnlyTest();
     }));
+    subscriptions.push(vscode.commands.registerCommand('maestro.files.createComponent', (selectedFile) => {
+      this.createComponent(selectedFile);
+    }));
+    subscriptions.push(vscode.commands.registerCommand('maestro.files.createCustomTemplates', (selectedFile) => {
+      this.createCustomTemplates();
+    }));
+  }
+
+  private async getTemplates(): Promise<any> {
+    let localTemplatePath = await this.fileUtils.getLocalTemplatesPath();
+    let templates = this.extensionTemplates;
+    if (fs.existsSync(localTemplatePath)) {
+      try {
+        templates = this.loadExtensionTemplatesJson(localTemplatePath);
+      } catch (error) {
+        console.error('Unable to load custom templates', error);
+      }
+    }
+    return templates;
+  }
+  async createComponent(selectedFile) {
+    if (!selectedFile) {
+      vscode.window.showErrorMessage('Select a path in the explorer');
+    }
+    let targetPath = this.getTargetPathForFileCreation(selectedFile);
+    let sourceRootForSelectedFile = await this.getSourceRootForSelectedPath(selectedFile);
+    let items = (await this.getTemplates()).templates.filter((template) => template.files.length > 0).map((item) => {
+      return {
+        label: item.name,
+        item: item
+      };
+    });
+
+    const selectedName = await util.showQuickPickInputBox({
+      placeholder: 'Select template to use',
+      items: items
+    });
+    console.log('input was', selectedName);
+
+    if (!selectedName) {
+      return;
+    }
+
+    const selectedItem = items.filter((item) => item.label === selectedName)[0].item;
+
+    const namespaceAndName = await util.showQuickPickInputBox({
+      placeholder: 'Enter the namespace.name for the component',
+    });
+    console.log('input was', namespaceAndName);
+    let rootFilePath = '';
+    if (namespaceAndName) {
+
+      const className = namespaceAndName.split('.').pop();
+      const namespaceName = namespaceAndName.replace(`.${className}`, '');
+
+      if (!className || !namespaceName) {
+        vscode.window.showErrorMessage('You must supply a namespace and class name');
+      }
+
+
+      let editedTargetPath = await vscode.window.showInputBox({
+        title: 'Path where new files are created',
+        placeHolder: targetPath,
+        valueSelection: [targetPath.length - 1, targetPath.length - 1],
+        value: this.fileUtils.getPkgPathFromFilePath(targetPath)
+      });
+
+      if (!editedTargetPath) {
+        return;
+      }
+
+      targetPath = path.join(sourceRootForSelectedFile, editedTargetPath);
+      this.fileUtils.ensurePathExists(targetPath);
+
+      let sourcePkgPath = this.fileUtils.getPkgPathFromFilePath(path.join(targetPath, `${className}`));
+      for (let filePath of selectedItem.files) {
+        try {
+
+          let targetFilePath = this.getTargetFilePath(filePath, targetPath, className);
+          if (!rootFilePath) {
+            rootFilePath = targetFilePath;
+          }
+          console.log('creating file', targetFilePath);
+          if (fs.existsSync(targetFilePath)) {
+            vscode.window.showWarningMessage(`${targetFilePath} already exists - not generating`);
+            continue;
+          }
+          if (!fs.existsSync(filePath)) {
+            vscode.window.showWarningMessage(`Template file: ${filePath} does not exist. Please check your custom templates.json`);
+            continue;
+          }
+          let text = this.loadAndReplaceExtensionText(filePath, namespaceName, className, sourcePkgPath);
+          //the fileExtension is everything from ., after the last path.sep in filePath
+
+          fs.writeFileSync(targetFilePath, text);
+          vscode.window.showInformationMessage(`Created ${targetFilePath}`);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Could not create template file`);
+        }
+      }
+    }
+    if (rootFilePath) {
+      await this.openFile(rootFilePath);
+      await this.onGotoBundle();
+      await this.onGotoCode();
+      await this.onGotoTest();
+
+    }
+  }
+
+  private async createCustomTemplates() {
+    let localTemplatePath = await this.fileUtils.getLocalTemplatesPath();
+
+    if (!localTemplatePath) {
+      return;
+    }
+    if (fs.existsSync(localTemplatePath)) {
+      vscode.window.showInformationMessage(`Templates folder already exists`);
+      return;
+    }
+
+    let extensionTemplatesPath = path.join(this.resourcesPath, 'templates');
+    //create localTemplatePath
+    fs.mkdirSync(localTemplatePath, { recursive: true });
+
+    //copy all files from extensionTemplatesPath to localTemplatePath
+
+    let templateFiles = fs.readdirSync(extensionTemplatesPath);
+    for (let file of templateFiles) {
+      fs.copyFileSync(path.join(extensionTemplatesPath, file), path.join(localTemplatePath, file));
+    }
+
+    vscode.window.showInformationMessage(`Copied Maestro template files to your .vscode folder for customization`);
+  }
+
+  getTargetPathForFileCreation(selectedFile: any) {
+    //TODO - what if there is no selectedFile
+    let parsedTargetPath = path.parse(selectedFile.fsPath);
+    let targetPath = parsedTargetPath.ext ? parsedTargetPath.dir : selectedFile.fsPath;
+    return targetPath;
+  }
+
+  async getSourceRootForSelectedPath(selectedFile: any) {
+    let pkgPath = await this.fileUtils.getPkgPathFromFilePath(selectedFile);
+    return selectedFile.fsPath.replace(path.sep + pkgPath, '');
+  }
+
+  private getTargetFilePath(filePath: string, targetPath: string, className: string) {
+    let templateFileName = filePath.split(path.sep).slice(-1)[0].split('.');
+    templateFileName.shift();
+    let templateExtension = templateFileName.join('.');
+    let targetFilename = `${className}.${templateExtension}`;
+    return path.join(targetPath, targetFilename);
+  }
+
+  private loadAndReplaceExtensionText(filePath: string, namespaceName: string, className: string, sourcePkgPath: string) {
+    let text = fs.readFileSync(filePath).toString();
+    text = text.replace(/\$CLASSNAME\$/gim, className);
+    text = text.replace(/\$NAMESPACE\$/gim, namespaceName);
+    text = text.replace(/\$SOURCE_PKG_PATH\$/gim, sourcePkgPath);
+    return text;
+  }
+
+  private loadExtensionTemplatesJson(filePath: string) {
+    filePath = path.resolve(filePath);
+    let txt = fs.readFileSync(path.join(filePath, 'templates.json')).toString();
+
+    let json = JSON.parse(txt);
+    for (let template of json.templates) {
+      template.files = template.files.map((file) => path.join(filePath, file));
+    }
+    return json;
   }
 
   async onCycleFiles() {

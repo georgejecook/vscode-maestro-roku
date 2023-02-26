@@ -22,23 +22,27 @@
     "onLanguage:xml",
     "workspaceContains:**/manifest",
     "workspaceContains:**/bsconfig.json",
-    "onCommand:extension.maestro.navigation.cycleFiles",
-    "onCommand:extension.maestro.navigation.gotoTest",
-    "onCommand:extension.maestro.navigation.gotoStyleKey",
-    "onCommand:extension.maestro.navigation.gotoCode",
-    "onCommand:extension.maestro.navigation.gotoBundle",
-    "onCommand:extension.maestro.navigation.peekStyleKey",
-    "onCommand:extension.maestro.navigation.peekBundle",
-    "onCommand:extension.maestro.navigation.updateTDDTarget",
-    "onCommand:extension.maestro.navigation.runTDDTarget",
-    "onCommand:extension.maestro.navigation.removeOnly",
-    "onCommand:extension.maestro.navigation.onlyDescribe",
-    "onCommand:extension.maestro.navigation.onlyIt",
-    "onCommand:extension.maestro.navigation.onlyTest"
+    "maestro.files.createComponent",
+    "maestro.files.createCustomTemplates"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "maestro.files.createComponent",
+        "title": "New Maestro component...",
+        "category": "Maestro roku"
+      },
+      {
+        "command": "maestro.files.File",
+        "title": "New Maestro file...",
+        "category": "Maestro roku"
+      },
+      {
+        "command": "maestro.files.createCustomTemplates",
+        "title": "Create Custom Maestro Templates",
+        "category": "Maestro roku"
+      },
       {
         "command": "extension.maestro.navigation.cycleFiles",
         "title": "Cycle through files",
@@ -62,16 +66,6 @@
       {
         "command": "extension.maestro.navigation.gotoBundle",
         "title": "Go to bundle",
-        "category": "Maestro roku"
-      },
-      {
-        "command": "extension.maestro.navigation.peekStyleKey",
-        "title": "Peek style key",
-        "category": "Maestro roku"
-      },
-      {
-        "command": "extension.maestro.navigation.peekBundle",
-        "title": "Peek bundle defintion",
         "category": "Maestro roku"
       },
       {
@@ -134,7 +128,15 @@
         "key": "alt+m c",
         "command": "extension.maestro.navigation.gotoCode"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "maestro.files.createComponent",
+          "group": "navigation@500"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

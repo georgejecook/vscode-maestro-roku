@@ -5,6 +5,16 @@ import getLinesForJsonKeys from './JsonParser';
 import * as fs from 'fs';
 
 export default class FileUtils {
+
+  ensurePathExists(targetPath: string) {
+    //if all parts of targetPath do not exist, create them now
+    let relativePathParts = targetPath;
+    fs.mkdirSync(relativePathParts, { recursive: true });
+  }
+
+  async getLocalTemplatesPath() {
+    return await this.getPathToWorkSpaceFolder(path.join('.vscode', '.maestro-templates'));
+  }
   public getAlternateFileName(filename: string): string | undefined {
     let name = filename ? filename : '';
 
@@ -112,5 +122,27 @@ export default class FileUtils {
     } else {
       return undefined;
     }
+  }
+
+  public getPkgPathFromFilePath(filePath: string | Uri) {
+    let relativeFilePath = vscode.workspace.asRelativePath(filePath);
+    let parsedPath = path.parse(relativeFilePath);
+    let dir = parsedPath.dir.split(path.sep);
+    if (/^[src|src-dev|src-test|src-qa|src-prod]/.test(dir[0])) {
+      dir.shift();
+      parsedPath.dir = dir.join(path.sep);
+    }
+    return path.format(parsedPath);
+  }
+
+  async getPathToWorkSpaceFolder(pathName: string) {
+    // Get the current workspace folder
+    let workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+      // No workspace folder open
+      return;
+    }
+    let vscodeFolderPath = path.join(workspaceFolder.uri.fsPath, pathName);
+    return vscodeFolderPath;
   }
 }
