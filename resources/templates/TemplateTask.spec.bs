@@ -47,7 +47,7 @@ namespace tests
     function _()
       serviceResult = { "id": "serviceResult" }
 
-      m.expectCalled(m.task.doSomething(), serviceResult)
+      m.expectCalled(m.task.exampleCommand("apiTask"), serviceResult)
       result = m.task.execute({
         id: "apiTask"
         command: "exampleCommand"

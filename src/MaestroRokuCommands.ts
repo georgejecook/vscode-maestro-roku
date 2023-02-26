@@ -86,7 +86,6 @@ export class MaestroRokuCommands {
       vscode.window.showErrorMessage('Select a path in the explorer');
     }
 
-    let pkgPath = this.fileUtils.getPkgPathFromFilePath(selectedFile);
     let items = ['Screen', 'Task', 'View', 'Row', 'Cell'].map((item) => { return { label: item }; });
 
     const userInput = await util.showQuickPickInputBox({
@@ -159,7 +158,6 @@ export class MaestroRokuCommands {
         vscode.window.showErrorMessage('You must supply a namespace and class name');
       }
 
-      let sourcePkgPath = this.fileUtils.getPkgPathFromFilePath(path.join(targetPath, `${className}`));
 
       let editedTargetPath = await vscode.window.showInputBox({
         title: 'Path where new files are created',
@@ -175,6 +173,7 @@ export class MaestroRokuCommands {
       targetPath = path.join(sourceRootForSelectedFile, editedTargetPath);
       this.fileUtils.ensurePathExists(targetPath);
 
+      let sourcePkgPath = this.fileUtils.getPkgPathFromFilePath(path.join(targetPath, `${className}`));
       for (let filePath of selectedItem.files) {
         try {
 
@@ -187,7 +186,7 @@ export class MaestroRokuCommands {
             vscode.window.showWarningMessage(`${targetFilePath} already exists - not generating`);
             continue;
           }
-          if (fs.existsSync(filePath)) {
+          if (!fs.existsSync(filePath)) {
             vscode.window.showWarningMessage(`Template file: ${filePath} does not exist. Please check your custom templates.json`);
             continue;
           }
@@ -244,7 +243,7 @@ export class MaestroRokuCommands {
 
   async getSourceRootForSelectedPath(selectedFile: any) {
     let pkgPath = await this.fileUtils.getPkgPathFromFilePath(selectedFile);
-    return selectedFile.fsPath.replace(pkgPath, '');
+    return selectedFile.fsPath.replace(path.sep + pkgPath, '');
   }
 
   private getTargetFilePath(filePath: string, targetPath: string, className: string) {

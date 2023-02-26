@@ -12,6 +12,22 @@
       "name": "View Component",
       "files": ["TemplateView.bs", "TemplateView.spec.bs", "TemplateView.json"]
     },
+    {
+      "name": "Custom Row Component",
+      "files": [
+        "TemplateCustomRow.bs",
+        "TemplateCustomRow.spec.bs",
+        "TemplateCustomRow.json"
+      ]
+    },
+    {
+      "name": "Custom Cell Comonent",
+      "files": [
+        "TemplateCustomCell.bs",
+        "TemplateCustomCell.spec.bs",
+        "TemplateCustomCell.json"
+      ]
+    },
     { "name": "Task", "files": ["TemplateTask.bs", "TemplateTask.spec.bs"] },
     { "name": "Screen file", "files": ["TemplateScreen.bs"] },
     { "name": "Screen test file", "files": ["TemplateScreen.spec.bs"] },
