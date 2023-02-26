@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/georgejecook/vscode-maestro-roku"
   },
-  "version": "0.0.3",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.53.0",
     "node": "^12.12.0"
