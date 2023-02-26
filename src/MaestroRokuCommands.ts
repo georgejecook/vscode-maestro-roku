@@ -74,38 +74,10 @@ export class MaestroRokuCommands {
     subscriptions.push(vscode.commands.registerCommand('maestro.files.createComponent', (selectedFile) => {
       this.createComponent(selectedFile);
     }));
-    subscriptions.push(vscode.commands.registerCommand('maestro.files.createFile', (selectedFile) => {
-      this.createFile(selectedFile);
-    }));
     subscriptions.push(vscode.commands.registerCommand('maestro.files.createCustomTemplates', (selectedFile) => {
       this.createCustomTemplates();
     }));
   }
-  async createFile(selectedFile) {
-    if (selectedFile) {
-      vscode.window.showErrorMessage('Select a path in the explorer');
-    }
-
-    let items = ['Screen', 'Task', 'View', 'Row', 'Cell'].map((item) => { return { label: item }; });
-
-    const userInput = await util.showQuickPickInputBox({
-      placeholder: 'Select template to use',
-      items: items
-    });
-    console.log('input was', userInput);
-
-    const namespaceAndName = await util.showQuickPickInputBox({
-      placeholder: 'Enter the namespace.name for the component',
-    });
-    console.log('input was', namespaceAndName);
-    const className = namespaceAndName.split('.').pop();
-    const namespaceName = namespaceAndName.replace(`.${className}`, '');
-
-    if (!className || !namespaceName) {
-      vscode.window.showErrorMessage('You must supply a namespace and class name');
-    }
-  }
-
 
   private async getTemplates(): Promise<any> {
     let localTemplatePath = await this.fileUtils.getLocalTemplatesPath();
